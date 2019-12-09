@@ -412,7 +412,7 @@ class AnalysisManager(threading.Thread):
         results["statistics"]["reporting"] = list()
         GetFeeds(results=results).run()
         RunProcessing(task=self.task.to_dict(), results=results).run()
-        RunSignatures(task=self.task.to_dict(), results=results).run()
+        #RunSignatures(task=self.task.to_dict(), results=results).run()
         RunReporting(task=self.task.to_dict(), results=results).run()
 
         # If the target is a file and the user enabled the option,

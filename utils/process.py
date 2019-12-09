@@ -11,6 +11,7 @@ import logging
 import argparse
 import signal
 import multiprocessing
+import traceback
 
 log = logging.getLogger()
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
@@ -55,7 +56,7 @@ def process(target=None, copy_path=None, task=None, report=False, auto=False, ca
     results["statistics"]["reporting"] = list()
     GetFeeds(results=results).run()
     RunProcessing(task=task.to_dict(), results=results).run()
-    RunSignatures(task=task.to_dict(), results=results).run()
+    #RunSignatures(task=task.to_dict(), results=results).run()
     task_id = task.to_dict()["id"]
     if report:
         if repconf.mongodb.enabled:
@@ -169,6 +170,8 @@ def autoprocess(parallel=1, failed_processing=False):
                             ar.get()
                         except:
                             log.exception("Exception when processing task ID %u.", tid)
+                            import traceback
+                            traceback.print_exc()
                             db.set_status(tid, TASK_FAILED_PROCESSING)
 
                     pending_results.remove((ar, tid, target, copy_path))

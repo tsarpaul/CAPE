@@ -223,7 +223,7 @@ class GuestManager:
         self.server._set_timeout(self.timeout)
 
         while True:
-            time.sleep(1)
+            time.sleep(0.2)
 
             # If the analysis hits the critical timeout, just return straight
             # away and try to recover the analysis results from the guest.

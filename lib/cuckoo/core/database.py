@@ -732,6 +732,8 @@ class Database(object):
             return None
 
         try:
+            log.info("LABEL: " + str(label))
+            log.info("PLATFORM: " + str(platform))
             machines = session.query(Machine)
             if label:
                 machines = machines.filter_by(label=label)
@@ -739,6 +741,7 @@ class Database(object):
                 machines = machines.filter_by(platform=platform)
             if tags:
                 for tag in tags:
+                    log.info("TAG: "+str(tag))
                     machines = machines.filter(Machine.tags.any(name=tag.name))
 
             # Check if there are any machines that satisfy the

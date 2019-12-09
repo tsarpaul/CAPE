@@ -336,11 +336,11 @@ class Machinery(object):
         while current not in state:
             log.debug("Waiting %i cuckooseconds for machine %s to switch "
                       "to status %s", waitme, label, state)
-            if waitme > int(self.options_globals.timeouts.vm_state):
+            if int(waitme) > int(self.options_globals.timeouts.vm_state):
                 raise CuckooMachineError("Timeout hit while for machine {0} "
                                          "to change status".format(label))
-            time.sleep(1)
-            waitme += 1
+            time.sleep(0.2)
+            waitme += 0.2
             current = self._status(label)
 
 

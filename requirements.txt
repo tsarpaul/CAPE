@@ -8,7 +8,6 @@ bottle
 django>=1.7
 chardet
 pygal
-clamd
 pycrypto
 jsbeautifier
 dpkt

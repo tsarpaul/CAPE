@@ -255,7 +255,7 @@ def proc_dump(file_path):
         for line in metadata:
             metastring = metastring + line + ','
     else:
-        log.warning("No metadata file for process dump at path \"%s\": %s", file_path.encode("utf-8", "replace"), e)
+        log.warning("No metadata file for process dump at path \"%s\"", file_path.encode("utf-8", "replace"))
         metastring = file_path
 
     try:

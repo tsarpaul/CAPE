@@ -609,8 +609,9 @@ class RunReporting:
         """@param analysis_path: analysis folder path."""
         self.task = task
         # remove unwanted/duplicate information from reporting
-        for process in results["behavior"]["processes"]:
-            process["calls"].begin_reporting()
+        if "behavior" in results:
+            for process in results["behavior"]["processes"]:
+                process["calls"].begin_reporting()
 
         self.results = results
         self.analysis_path = os.path.join(CUCKOO_ROOT, "storage", "analyses", str(task["id"]))

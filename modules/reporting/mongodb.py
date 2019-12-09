@@ -4,6 +4,7 @@
 
 import logging
 import os
+import json
 from lib.cuckoo.common.abstracts import Report
 from lib.cuckoo.common.exceptions import CuckooDependencyError
 from lib.cuckoo.common.exceptions import CuckooReportError
@@ -179,8 +180,9 @@ class MongoDB(Report):
             new_process["calls"] = chunks_ids
             new_processes.append(new_process)
         # Store the results in the report.
-        report["behavior"] = dict(report["behavior"])
+        report["behavior"] = dict(report.get("behavior", {}))
         report["behavior"]["processes"] = new_processes
+
         # Calculate the mlist_cnt for display if present to reduce db load
         if "signatures" in results:
             for entry in results["signatures"]:
@@ -213,6 +215,7 @@ class MongoDB(Report):
         if analyses.count() > 0:
             log.debug("Deleting analysis data for Task %s" % report["info"]["id"])
             for analysis in analyses:
+                log.info(analysis)
                 for process in analysis["behavior"]["processes"]:
                     for call in process["calls"]:
                         self.db.calls.remove({"_id": ObjectId(call)})

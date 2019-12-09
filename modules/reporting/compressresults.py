@@ -42,10 +42,11 @@ class CompressResults(Report):
             results["procdump"] = Binary(compressed_procdump)
 
         # compress behaviour analysis (enhanced & summary)
-        if "enhanced" in results["behavior"]:
-            compressed_behavior_enhanced = zlib.compress(JSONEncoder().encode(results["behavior"]["enhanced"]).encode('utf8'))
-            results["behavior"]["enhanced"] = Binary(compressed_behavior_enhanced)
+        if "behavior" in results:
+            if "enhanced" in results["behavior"]:
+                compressed_behavior_enhanced = zlib.compress(JSONEncoder().encode(results["behavior"]["enhanced"]).encode('utf8'))
+                results["behavior"]["enhanced"] = Binary(compressed_behavior_enhanced)
 
-        if "summary" in results["behavior"]:
-            compressed_behavior_summary = zlib.compress(JSONEncoder().encode(results["behavior"]["summary"]).encode('utf8'))
-            results["behavior"]["summary"] = Binary(compressed_behavior_summary)
+            if "summary" in results["behavior"]:
+                compressed_behavior_summary = zlib.compress(JSONEncoder().encode(results["behavior"]["summary"]).encode('utf8'))
+                results["behavior"]["summary"] = Binary(compressed_behavior_summary)
