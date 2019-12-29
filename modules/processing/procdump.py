@@ -38,14 +38,17 @@ class ProcDump(Processing):
             file_info["pid"] = metastrings[1]
             file_info["cape_type"] = "PE image"
             type_strings = file_info["type"].split()
-            if type_strings[0] == ("PE32+"):
-                file_info["cape_type"] += ": 64-bit "
-            elif type_strings[0] == ("PE32"):
-                file_info["cape_type"] += ": 32-bit "
-            if type_strings[2] == ("(DLL)"):
-                file_info["cape_type"] += "DLL"
+            if type_strings[0] == "MS-DOS":
+                 file_info["cape_type"] = "PE image: MS-DOS"
             else:
-                file_info["cape_type"] += "executable"
+                if type_strings[0] == ("PE32+"):
+                    file_info["cape_type"] += ": 64-bit "
+                elif type_strings[0] == ("PE32"):
+                    file_info["cape_type"] += ": 32-bit "
+                if type_strings[2] == ("(DLL)"):
+                    file_info["cape_type"] += "DLL"
+                else:
+                    file_info["cape_type"] += "executable"
             texttypes = [
                 "ASCII",
                 "Windows Registry text",
