@@ -52,6 +52,7 @@ CAPE_DUMPED_LIST = []
 PROC_DUMPED_LIST = []
 UPLOADPATH_LIST = []
 PROCESS_LIST = []
+PROCMEMDUMP_LIST = []
 INJECT_LIST = []
 CRITICAL_PROCESS_LIST = []
 PROTECTED_PATH_LIST = []
@@ -123,11 +124,16 @@ def add_protected_path(name):
     else:
         PROTECTED_PATH_LIST.append(name.lower())
 
+def add_critical_pid(pid, to_dump=True):
+    log.info("Added new critical process to list with pid: %s", pid)
+    CRITICAL_PROCESS_LIST.append(int(pid))
+
 def add_pid(pid):
     """Add a process to process list."""
     if isinstance(pid, (int, long, str)):
         log.info("Added new process to list with pid: %s", pid)
         PROCESS_LIST.append(int(pid))
+        PROCMEMDUMP_LIST.append(int(pid))
         add_pid_to_aux_modules(int(pid))
 
 def remove_pid(pid):
@@ -471,7 +477,7 @@ class PipeHandler(Thread):
                         if dcom_pid:
                             log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
                             servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
-                            CRITICAL_PROCESS_LIST.append(int(dcom_pid))
+                            add_critical_pid(dcom_pid)
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                             LASTINJECT_TIME = datetime.now()
@@ -496,7 +502,7 @@ class PipeHandler(Thread):
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
                                 servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
-                                CRITICAL_PROCESS_LIST.append(int(dcom_pid))
+                                add_critical_pid(dcom_pid)
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                                 LASTINJECT_TIME = datetime.now()
@@ -510,7 +516,7 @@ class PipeHandler(Thread):
                         if wmi_pid:
                             log.info("Attaching to WMI service (pid %d)", wmi_pid)
                             servproc = Process(options=self.options,config=self.config,pid=wmi_pid,suspended=False)
-                            CRITICAL_PROCESS_LIST.append(int(wmi_pid))
+                            add_critical_pid(wmi_pid)
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                             LASTINJECT_TIME = datetime.now()
@@ -533,7 +539,7 @@ class PipeHandler(Thread):
                         sched_pid = pid_from_service_name("schedule")
                         if sched_pid:
                             servproc = Process(options=self.options,config=self.config,pid=sched_pid,suspended=False)
-                            CRITICAL_PROCESS_LIST.append(int(sched_pid))
+                            add_critical_pid(sched_pid)
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                             LASTINJECT_TIME = datetime.now()
@@ -558,7 +564,7 @@ class PipeHandler(Thread):
                             if dcom_pid:
                                 log.info("Attaching to DcomLaunch service (pid %d)", dcom_pid)
                                 servproc = Process(options=self.options,config=self.config,pid=dcom_pid,suspended=False)
-                                CRITICAL_PROCESS_LIST.append(int(dcom_pid))
+                                add_critical_pid(dcom_pid)
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                                 LASTINJECT_TIME = datetime.now()
@@ -572,7 +578,7 @@ class PipeHandler(Thread):
                         bits_pid = pid_from_service_name("BITS")
                         if bits_pid:
                             servproc = Process(options=self.options,config=self.config,pid=bits_pid,suspended=False)
-                            CRITICAL_PROCESS_LIST.append(int(bits_pid))
+                            add_critical_pid(bits_pid)
                             filepath = servproc.get_filepath()
                             servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                             LASTINJECT_TIME = datetime.now()
@@ -600,7 +606,7 @@ class PipeHandler(Thread):
                             if SERVICES_PID:
                                 log.info("Attaching to Service Control Manager (services.exe - pid %d)", SERVICES_PID)
                                 servproc = Process(options=self.options,config=self.config,pid=SERVICES_PID,suspended=False)
-                                CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
+                                add_critical_pid(SERVICES_PID, to_dump=False)
                                 filepath = servproc.get_filepath()
                                 servproc.inject(injectmode=INJECT_QUEUEUSERAPC, interest=filepath, nosleepskip=True)
                                 LASTINJECT_TIME = datetime.now()
@@ -714,7 +720,7 @@ class PipeHandler(Thread):
                                 is_64bit = proc.is_64bit()
                                 filename = os.path.basename(filepath)
                                 if SERVICES_PID and process_id == SERVICES_PID:
-                                    CRITICAL_PROCESS_LIST.append(int(SERVICES_PID))
+                                    add_critical_pid(SERVICES_PID, to_dump=True)
                                 log.info("Announced %s process name: %s pid: %d", "64-bit" if is_64bit else "32-bit", filename, process_id)
                                 if not in_protected_path(filename):
                                     res = proc.inject(INJECT_QUEUEUSERAPC, interest)
@@ -929,7 +935,7 @@ class Analyzer:
         if svcpid:
             SERVICES_PID = svcpid[0]
             self.config.services_pid = svcpid[0]
-            CRITICAL_PROCESS_LIST.append(int(svcpid[0]))
+            add_critical_pid(int(svcpid[0]), to_dump=False)
 
         protected_procname_list = [
             "vmwareuser.exe",
@@ -1204,6 +1210,7 @@ class Analyzer:
                     if not kernel_analysis:
                         for pid in PROCESS_LIST:
                             if not Process(pid=pid).is_alive():
+                                log.debug("PAUL: removing pid %s", pid)
                                 if self.options.get("procmemdump"):
                                     Process(pid=pid).upload_memdump()
                                 log.info("Process with pid %s has terminated", pid)
@@ -1226,6 +1233,8 @@ class Analyzer:
                     # analysis package. It could be used for internal
                     # operations within the module.
                     pack.set_pids(PROCESS_LIST)
+                    log.debug("PAUL: Setting dump pids: " + str(PROCMEMDUMP_LIST))
+                    pack.set_dump_pids(PROCMEMDUMP_LIST)
 
                 try:
                     # The analysis packages are provided with a function that
@@ -1258,7 +1267,8 @@ class Analyzer:
         if not kernel_analysis:
             for pid in PROCESS_LIST:
                 proc = Process(pid=pid)
-                if proc.is_alive() and not pid in CRITICAL_PROCESS_LIST and not proc.is_critical():
+                # TODO PAUL
+                if proc.is_alive(): # and not pid in CRITICAL_PROCESS_LIST and not proc.is_critical():
                     try:
                         proc.set_terminate_event()
                     except:

@@ -4,6 +4,7 @@
 
 import glob
 import os
+import logging
 
 INJECT_CREATEREMOTETHREAD = 0
 INJECT_QUEUEUSERAPC       = 1
@@ -11,6 +12,8 @@ INJECT_QUEUEUSERAPC       = 1
 from lib.api.process import Process
 from lib.api.utils import Utils
 from lib.common.exceptions import CuckooPackageError
+
+log = logging.getLogger()
 
 class Package(object):
     """Base abstract analysis package."""
@@ -21,6 +24,7 @@ class Package(object):
         self.config = config
         self.options = options
         self.pids = []
+        self.dump_pids = []
         # Fetch the current working directory, defaults to $TEMP.
 
     def set_pids(self, pids):
@@ -28,6 +32,9 @@ class Package(object):
         @param pids: list of pids.
         """
         self.pids = pids
+
+    def set_dump_pids(self, pids):
+        self.dump_pids = pids
 
     def start(self):
         """Run analysis package.
@@ -192,7 +199,8 @@ class Package(object):
         all running processes.
         """
         if self.options.get("procmemdump"):
-            for pid in self.pids:
+            for pid in self.dump_pids:
+                log.debug("PAUL: DUMPING PID {}".format(pid))
                 p = Process(pid=pid)
                 p.upload_memdump()
 
